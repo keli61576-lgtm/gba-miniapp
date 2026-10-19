@@ -222,8 +222,12 @@ async function startPlay(id,fresh){
   toast('Não consegui ler a ROM salva. Apague o jogo e adicione de novo.');
   setTimeout(()=>{history.replaceState(null,'',location.pathname);location.reload()},3000);return}
  const auto=fresh?null:await get('states',id+':auto');
+ /* usa o emulador hospedado na pasta data/ do próprio site; se ela não existir, cai no CDN */
+ let base='https://cdn.emulatorjs.org/stable/data/';
+ try{const r=await fetch('data/loader.js',{method:'HEAD',cache:'no-store'});if(r.ok)base='data/'}catch(e){}
+ toast(base==='data/'?'Emulador local ✓':'Emulador via CDN');
  Object.assign(window,{EJS_player:'#game',EJS_core:'gba',EJS_gameUrl:URL.createObjectURL(rom),
-  EJS_gameName:g.name.replace(/[^\w\- ]/g,'')||'jogo',EJS_pathtodata:'https://cdn.emulatorjs.org/stable/data/',
+  EJS_gameName:g.name.replace(/[^\w\- ]/g,'')||'jogo',EJS_pathtodata:base,
   EJS_color:'#7b4fd6',EJS_language:'pt-BR',EJS_threads:false,
   EJS_onGameStart:()=>{started=true;toast(auto?'Auto-save carregado':'Auto-save ativo')}});
  if(auto)window.EJS_loadStateURL=URL.createObjectURL(auto.data);
