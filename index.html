@@ -10,6 +10,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:#eee;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;touch-action:manipulation}
 html,body{overscroll-behavior:none}
+html{overflow:hidden}
 body{position:fixed;inset:0;width:100%;overflow:hidden;
  padding-top:calc(env(safe-area-inset-top,0px) + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));
  padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(--tg-safe-area-inset-bottom,0px) + var(--tg-content-safe-area-inset-bottom,0px));
@@ -20,7 +21,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 
 /* ---------- console ---------- */
 #home{height:100%;overflow-y:auto;overscroll-behavior:none;display:flex}
-.console{width:100%;height:100%;min-height:500px;display:flex;flex-direction:column;padding:12px 16px 22px;background:linear-gradient(155deg,var(--p1),var(--p2))}
+.console{width:100%;height:100%;min-height:500px;overflow:hidden;display:flex;flex-direction:column;padding:12px 16px 34px;background:linear-gradient(155deg,var(--p1),var(--p2))}
 .bezel{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--bezel);padding:10px 14px 14px}
 .bezel-top{display:flex;align-items:center;gap:6px;font-size:.6rem;letter-spacing:.12em;color:#9a98a8;margin-bottom:8px}
 .bezel-top i{width:7px;height:7px;border-radius:50%;background:#e33;box-shadow:0 0 6px #e33}
@@ -142,6 +143,8 @@ const $=s=>document.querySelector(s);
 const tg=window.Telegram&&window.Telegram.WebApp;
 try{tg.ready();tg.expand();tg.disableVerticalSwipes&&tg.disableVerticalSwipes();tg.setHeaderColor('#0e0b16');tg.setBackgroundColor('#0e0b16')}catch(e){}
 try{navigator.storage.persist()}catch(e){}
+document.addEventListener('touchmove',e=>{if(!e.target.closest('#list,.card,#game'))e.preventDefault()},{passive:false});
+addEventListener('scroll',()=>scrollTo(0,0));
 
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2400)}
 const ask=m=>new Promise(r=>{try{tg.showConfirm(m,r)}catch(e){r(confirm(m))}});
