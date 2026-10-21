@@ -56,50 +56,13 @@ button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2
 .ss button{width:54px;height:14px;border-radius:7px;border:0;background:#3a3844;box-shadow:0 2px 0 #0004}
 .ss span{display:block;margin-top:5px;font-size:.55rem;letter-spacing:.1em;color:#e7dcff;text-align:center}
 
-/* ---------- jogando (console) ---------- */
-#play{display:none;height:100%}
-body.playing #home{display:none}
-body.playing #play{display:block}
-.ejs_virtualGamepad_parent{display:none!important}
-#pc{height:100%;max-width:520px;margin:0 auto;display:grid;gap:8px;padding:8px 14px 14px;background:linear-gradient(155deg,var(--p1),var(--p2));
- grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto minmax(0,1fr) auto;
- grid-template-areas:"bar bar" "l r" "lcd lcd" "d ab" "ss ss"}
-.pbar{grid-area:bar;display:flex;align-items:center;gap:6px}
-.pbar button{background:#2d2640;color:#e7dcff;border:0;border-radius:8px;padding:8px 10px;font-weight:600;font-size:.8rem}
-#title{flex:1;min-width:0;font-size:.8rem;color:#e7dcff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-.pb{-webkit-user-select:none;user-select:none;touch-action:none;cursor:pointer}
-.sh{height:34px;width:62%;border:0;background:#2d2640;color:#cbbcf5;font-weight:800;border-radius:12px 12px 4px 4px;box-shadow:inset 0 -3px 0 #0004}
-.sh.l{grid-area:l;justify-self:start}.sh.r{grid-area:r;justify-self:end}
-.sh.on,.ab2 .pb.on,.ss2 .pb.on{filter:brightness(1.5)}
-.lcdwrap{grid-area:lcd;background:var(--bezel);padding:12px 14px;display:flex;justify-content:center;min-height:0}
-.screen{width:100%;aspect-ratio:3/2;background:#000;position:relative;overflow:hidden}
-#game{width:100%;height:100%}
-.lcdwrap.big{position:fixed;inset:0;z-index:60;padding:calc(env(safe-area-inset-top,0px) + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px)) 0 calc(env(safe-area-inset-bottom,0px) + var(--tg-safe-area-inset-bottom,0px)) 0;background:#000}
-.lcdwrap.big .screen{aspect-ratio:auto;height:100%}
-#p-close{display:none;position:fixed;z-index:100;top:calc(8px + env(safe-area-inset-top,0px) + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));right:8px;background:var(--p1);color:#fff;border:0;border-radius:10px;padding:8px 12px;font-weight:700}
-.lcdwrap.big #p-close{display:block}
-.dpad2{grid-area:d;justify-self:center;align-self:center;position:relative;width:132px;height:132px;touch-action:none}
-.dpad2:before,.dpad2:after{content:"";position:absolute;background:#24212c;border-radius:5px}
-.dpad2:before{left:44px;top:0;width:44px;height:132px}.dpad2:after{left:0;top:44px;width:132px;height:44px}
-.ar{position:absolute;z-index:1;border:0 solid transparent;color:#6d6a7a}.ar.on{color:#fff}
-.ar.u{left:60px;top:10px;border-width:0 6px 10px;border-bottom-color:currentColor}.ar.bt{left:60px;bottom:10px;border-width:10px 6px 0;border-top-color:currentColor}
-.ar.l{left:10px;top:60px;border-width:6px 10px 6px 0;border-right-color:currentColor}.ar.r{right:10px;top:60px;border-width:6px 0 6px 10px;border-left-color:currentColor}
-.ab2{grid-area:ab;justify-self:center;align-self:center;display:flex;gap:16px;transform:rotate(-22deg)}
-.ab2 .pb{width:64px;height:64px;border-radius:50%;border:0;background:var(--btn);color:#f6c8dc;font-weight:800;font-size:1.1rem;box-shadow:inset 0 -4px 0 #0004,0 3px 0 #0003}
-.ab2 .pb:last-child{margin-top:-20px}
-.ss2{grid-area:ss;display:flex;justify-content:center;gap:34px}
-.ss2 .pb{display:block;width:58px;height:15px;border-radius:8px;border:0;background:#3a3844;box-shadow:0 2px 0 #0004}
-.ss2 span{display:block;margin-top:5px;font-size:.55rem;letter-spacing:.1em;color:#e7dcff;text-align:center}
-@media (orientation:landscape) and (max-height:560px){
- #pc{max-width:none;grid-template-columns:1fr auto 1fr;grid-template-rows:auto auto minmax(0,1fr) auto;
-  grid-template-areas:"bar bar bar" "l lcd r" "d lcd ab" "ss ss ss"}
- .sh{width:70%}
- .lcdwrap{align-self:stretch;grid-row:2/4}
- .screen{height:100%;width:auto;max-width:100%}
- .dpad2{width:112px;height:112px}.dpad2:before{left:37px;width:38px;height:112px}.dpad2:after{top:37px;height:38px;width:112px}
- .ar.u{left:50px}.ar.bt{left:50px}.ar.l{top:50px}.ar.r{top:50px}
- .ab2 .pb{width:54px;height:54px}
-}
+/* ---------- jogando ---------- */
+#play{display:none;height:100%;flex-direction:column}
+body.playing #home{display:none}body.playing #play{display:flex}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1b1626}
+.bar button{background:var(--p2);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:600}
+#title{flex:1;min-width:0;font-size:.85rem;color:#bdb3d6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#game{flex:1;min-height:0}
 
 /* ---------- janelas ---------- */
 .ov{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:50;
@@ -137,7 +100,7 @@ body.playing #play{display:block}
     </div>
    </div>
   </div>
-  <div class="logo">GAME BOY ADVANCE</div>
+  <div class="logo">PLAYER ADVANCE</div>
   <div class="pad">
    <div class="dpad">
     <button class="d u" data-k="up" aria-label="Cima"></button><button class="d l" data-k="left" aria-label="Esquerda"></button>
@@ -152,15 +115,10 @@ body.playing #play{display:block}
  </div>
 </main>
 
-<section id="play"><div id="pc">
- <div class="pbar"><button id="p-back">← Jogos</button><div id="title"></div><button id="p-saves">Saves</button><button id="p-set">Ajustes</button></div>
- <button class="pb sh l" data-i="10" aria-label="L">L</button>
- <button class="pb sh r" data-i="11" aria-label="R">R</button>
- <div class="lcdwrap" id="lcdwrap"><div class="screen"><div id="game"></div></div><button id="p-close">✕ Fechar ajustes</button></div>
- <div class="dpad2" id="dp"><i class="ar u"></i><i class="ar bt"></i><i class="ar l"></i><i class="ar r"></i></div>
- <div class="ab2"><button class="pb" data-i="0" aria-label="B">B</button><button class="pb" data-i="8" aria-label="A">A</button></div>
- <div class="ss2"><div><button class="pb" data-i="2" aria-label="Select"></button><span>SELECT</span></div><div><button class="pb" data-i="3" aria-label="Start"></button><span>START</span></div></div>
-</div></section>
+<section id="play">
+ <div class="bar"><button id="p-back">← Jogos</button><div id="title"></div><button id="p-saves">Saves</button></div>
+ <div id="game"></div>
+</section>
 
 <div class="ov" id="ov-add"><div class="card">
  <h2>Adicionar jogo</h2>
@@ -174,7 +132,6 @@ body.playing #play{display:block}
  <h2>Saves</h2>
  <p style="margin:0;font-size:.8rem;color:#9b90bb">O auto-save grava a cada 30 s e ao sair do jogo.</p>
  <div id="slots"></div>
- <button class="btn sec" id="s-vib"></button>
  <button class="btn sec" id="s-close">Fechar</button>
 </div></div>
 
@@ -189,9 +146,6 @@ try{navigator.storage.persist()}catch(e){}
 document.addEventListener('touchmove',e=>{if(!e.target.closest('#list,.card,#game'))e.preventDefault()},{passive:false});
 addEventListener('scroll',()=>scrollTo(0,0));
 
-let vibOn=true;try{vibOn=localStorage.getItem('vib')!=='0'}catch(e){}
-function buzz(k){if(!vibOn)return;try{tg.HapticFeedback.impactOccurred(k||'light');return}catch(e){}try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
-addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.classList.contains('pb'))buzz('light')},true);
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2400)}
 const ask=m=>new Promise(r=>{try{tg.showConfirm(m,r)}catch(e){r(confirm(m))}});
 const fmt=t=>new Date(t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
@@ -285,7 +239,7 @@ async function startPlay(id,fresh){
  toast(base==='data/'?'Emulador local ✓':'Emulador via CDN');
  Object.assign(window,{EJS_player:'#game',EJS_core:'gba',EJS_gameUrl:URL.createObjectURL(rom),
   EJS_gameName:g.name.replace(/[^\w\- ]/g,'')||'jogo',EJS_pathtodata:base,
-  EJS_color:'#7b4fd6',EJS_language:'pt-BR',EJS_threads:false,EJS_defaultOptions:{'virtual-gamepad':'disabled'},
+  EJS_color:'#7b4fd6',EJS_language:'pt-BR',EJS_threads:false,
   EJS_onGameStart:()=>{started=true;toast(auto?'Auto-save carregado':'Auto-save ativo')}});
  if(auto)window.EJS_loadStateURL=URL.createObjectURL(auto.data);
  try{tg.requestFullscreen&&tg.requestFullscreen()}catch(e){}
@@ -297,9 +251,6 @@ async function startPlay(id,fresh){
  s.onerror=()=>toast('Não foi possível carregar o emulador');document.body.appendChild(s);
 }
 $('#p-back').onclick=back;
-const vibLabel=()=>$('#s-vib').textContent='Vibração: '+(vibOn?'ligada':'desligada');
-$('#s-vib').onclick=()=>{vibOn=!vibOn;try{localStorage.setItem('vib',vibOn?'1':'0')}catch(e){}vibLabel();buzz('medium')};
-vibLabel();
 $('#s-close').onclick=()=>$('#ov-saves').classList.remove('show');
 $('#p-saves').onclick=async()=>{
  const box=$('#slots');box.innerHTML='';box.style.cssText='display:flex;flex-direction:column;gap:8px';
@@ -312,36 +263,6 @@ $('#p-saves').onclick=async()=>{
   ld.onclick=async()=>{if(await restore(s)){$('#ov-saves').classList.remove('show');toast('Save carregado')}else toast('Falha ao carregar')};
   row.appendChild(ld);box.appendChild(row)}
  $('#ov-saves').classList.add('show')};
-
-/* ---------- controles do console ---------- */
-const press=(i,v)=>{try{window.EJS_emulator.gameManager.simulateInput(0,i,v)}catch(e){}};
-document.querySelectorAll('#pc .pb').forEach(b=>{
- const i=+b.dataset.i,up=()=>{b.classList.remove('on');press(i,0)};
- b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(x){}b.classList.add('on');press(i,1);buzz('light')});
- ['pointerup','pointercancel','lostpointercapture'].forEach(t=>b.addEventListener(t,up));
-});
-const dp=$('#dp'),dirs={4:0,5:0,6:0,7:0},arrow={4:'u',5:'bt',6:'l',7:'r'};
-function setDir(x,y){
- const r=dp.getBoundingClientRect(),dx=(x-r.left-r.width/2)/(r.width/2),dy=(y-r.top-r.height/2)/(r.height/2);
- const n={4:dy<-.3?1:0,5:dy>.3?1:0,6:dx<-.3?1:0,7:dx>.3?1:0};
- for(const k in n)if(n[k]!==dirs[k]){dirs[k]=n[k];press(+k,n[k]);dp.querySelector('.ar.'+arrow[k]).classList.toggle('on',!!n[k]);if(n[k])buzz('light')}}
-const freeDir=()=>{for(const k in dirs)if(dirs[k]){dirs[k]=0;press(+k,0);dp.querySelector('.ar.'+arrow[k]).classList.remove('on')}};
-dp.addEventListener('pointerdown',e=>{e.preventDefault();try{dp.setPointerCapture(e.pointerId)}catch(x){}setDir(e.clientX,e.clientY)});
-dp.addEventListener('pointermove',e=>{if(dp.hasPointerCapture&&dp.hasPointerCapture(e.pointerId))setDir(e.clientX,e.clientY)});
-['pointerup','pointercancel','lostpointercapture'].forEach(t=>dp.addEventListener(t,freeDir));
-
-/* Ajustes: abre o menu do emulador numa tela maior e volta ao console */
-const lcd=$('#lcdwrap'),resize=()=>setTimeout(()=>dispatchEvent(new Event('resize')),60);
-$('#p-set').onclick=()=>{
- const em=window.EJS_emulator;if(!started||!em)return toast('Aguarde o jogo iniciar');
- lcd.classList.add('big');resize();
- try{em.menu.open(true)}catch(e){}
- setTimeout(()=>{try{em.elements.bottomBar.settings[0][0].click()}catch(e){}},300)};
-$('#p-close').onclick=()=>{
- const em=window.EJS_emulator;
- try{em.closeSettingsMenu&&em.closeSettingsMenu()}catch(e){}
- try{em.menu.close()}catch(e){}
- lcd.classList.remove('big');resize()};
 
 /* ---------- início ---------- */
 function home(){try{tg.BackButton.hide()}catch(e){}try{if(tg.isFullscreen)tg.exitFullscreen()}catch(e){}loadLib()}
