@@ -1,124 +1,172 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Player Advance</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Emulador GBA</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{--bg:#0e0b16;--p1:#8a5ce0;--p2:#5a33a8;--bezel:#3a3844;--lcd:#c3cf8b;--ink:#26331c;--ink2:#56673b;--btn:#a3235a}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:#eee;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;touch-action:manipulation}
-html,body{overscroll-behavior:none}
-html{overflow:hidden}
-body{position:fixed;inset:0;width:100%;overflow:hidden;
- padding-top:calc(env(safe-area-inset-top,0px) + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px));
- padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(--tg-safe-area-inset-bottom,0px) + var(--tg-content-safe-area-inset-bottom,0px));
- padding-left:calc(env(safe-area-inset-left,0px) + var(--tg-safe-area-inset-left,0px));
- padding-right:calc(env(safe-area-inset-right,0px) + var(--tg-safe-area-inset-right,0px))}
-button{font:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+:root{
+  --purple:#6f21c9;--purple-dark:#5a17a8;--grey:#dcdcdf;--grey-dark:#bdbdc3;--label:#f2e9ff;
+  --ctrl-h:clamp(270px, 43dvh, 400px);
+  --d:clamp(40px, 12vw, 58px);
+  --ab:clamp(54px, 16vw, 74px);
+  --p1:#8a5ce0;--p2:#5a33a8;--bar:#4b1494;--lcd:#c3cf8b;--ink:#26331c;
+}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+input{user-select:text;-webkit-user-select:text}
+html,body{width:100%;height:100dvh;overflow:hidden;background:#000;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;overscroll-behavior:none}
+body{position:fixed;top:0;left:0}
+button{font:inherit;border:none;touch-action:none;outline:none;cursor:pointer}
+button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 
-/* ---------- console ---------- */
-#home{height:100%;overflow-y:auto;overscroll-behavior:none;display:flex}
-.console{width:100%;height:100%;min-height:500px;overflow:hidden;display:flex;flex-direction:column;padding:12px 16px 34px;background:linear-gradient(155deg,var(--p1),var(--p2))}
-.bezel{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--bezel);padding:10px 14px 14px}
-.bezel-top{display:flex;align-items:center;gap:6px;font-size:.6rem;letter-spacing:.12em;color:#9a98a8;margin-bottom:8px}
-.bezel-top i{width:7px;height:7px;border-radius:50%;background:#e33;box-shadow:0 0 6px #e33}
-.lcd{background:var(--lcd);color:var(--ink);flex:1;min-height:0;display:flex;flex-direction:column;font-family:"Courier New",monospace;box-shadow:inset 0 0 14px #0004;overflow:hidden}
-.lcd-head{padding:5px 8px;border-bottom:2px solid var(--ink);font-weight:700;font-size:.8rem;letter-spacing:.08em}
-#list{flex:1;min-height:0;margin:0;padding:0;list-style:none;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
-.lcd-head,.lcd-foot,.logo,.pad,.ss,.bezel-top{flex:none}
-#list li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px dashed #26331c55;cursor:pointer}
-#list li.on{background:var(--ink);color:var(--lcd)}
-.cv{flex:none;width:44px;height:44px;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:1.2rem;overflow:hidden;background:#0001}
+.emulator{display:flex;flex-direction:column;width:100%;height:100%;background:#000}
+
+/* ===== TELA ===== */
+.screen-area{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) 0 0}
+.gba-screen{
+  position:relative;background:#000;overflow:hidden;
+  aspect-ratio:3/2;
+  width:min(100vw, 760px, calc((100dvh - var(--ctrl-h) - env(safe-area-inset-top)) * 1.5));
+}
+#game{position:absolute;inset:0;display:none}
+body.playing #game{display:block}
+#game canvas{width:100%!important;height:100%!important;image-rendering:pixelated}
+.ejs_virtualGamepad_parent{display:none!important}
+
+/* biblioteca (aparece na tela quando nenhum jogo está rodando) */
+body:not(.playing) .gba-screen{aspect-ratio:auto;width:100%;align-self:stretch}
+body.playing #lib{display:none}
+#lib{position:absolute;inset:0;display:flex;flex-direction:column;background:#000;color:#e9e4f5;font-family:"Courier New",monospace}
+.lcd-head{flex:none;padding:6px 10px;background:var(--bar);color:var(--label);font-weight:700;font-size:.8rem;letter-spacing:.08em}
+#list{flex:1;min-height:0;list-style:none;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+#list li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px dashed #ffffff26;cursor:pointer}
+#list li.on{background:var(--purple);color:#fff}
+.cv{flex:none;width:44px;height:44px;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:1.2rem;overflow:hidden;background:#ffffff14}
 .cv img{width:100%;height:100%;object-fit:cover;display:block}
 .nm{flex:1;min-width:0;font-weight:700;font-size:.85rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .tag{font-size:.6rem;white-space:nowrap}
-.empty{padding:22px 14px;text-align:center;line-height:1.6;font-size:.85rem}
-.lcd-foot{display:flex;gap:4px;padding:5px;border-top:2px solid var(--ink)}
-.lcd-foot button{flex:1;background:transparent;color:var(--ink);border:2px solid var(--ink);padding:5px 0;font:700 .72rem "Courier New",monospace}
-.lcd-foot button:active{background:var(--ink);color:var(--lcd)}
-.logo{margin:12px 6px 4px;font:italic 800 1.05rem system-ui;letter-spacing:.06em;color:#e7dcff;text-shadow:0 1px 0 #0005}
-.pad{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 0}
-.dpad{position:relative;width:99px;height:99px}
-.dpad:before,.dpad:after{content:"";position:absolute;background:#24212c;border-radius:4px}
-.dpad:before{left:33px;top:0;width:33px;height:99px}.dpad:after{left:0;top:33px;width:99px;height:33px}
-.d{position:absolute;width:33px;height:33px;z-index:1;background:transparent;border:0;color:#6d6a7a;font-size:0}
-.d:after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:0 solid transparent}
-.d.u:after{border-width:0 6px 9px;border-bottom-color:currentColor}.d.dn:after{border-width:9px 6px 0;border-top-color:currentColor}
-.d.l:after{border-width:6px 9px 6px 0;border-right-color:currentColor}.d.r:after{border-width:6px 0 6px 9px;border-left-color:currentColor}
-.d:active{color:#fff}.d.u{left:33px;top:0}.d.dn{left:33px;top:66px}.d.l{left:0;top:33px}.d.r{left:66px;top:33px}
-.ab{display:flex;gap:14px;transform:rotate(-22deg);margin-right:4px}
-.ab button{width:50px;height:50px;border-radius:50%;border:0;background:var(--btn);color:#f6c8dc;font-weight:800;box-shadow:inset 0 -4px 0 #0004,0 3px 0 #0003}
-.ab button:active{transform:translateY(2px)}.ab button:last-child{margin-top:-16px}
-.ss{display:flex;justify-content:center;gap:22px;margin-top:20px;transform:rotate(-22deg)}
-.ss button{width:54px;height:14px;border-radius:7px;border:0;background:#3a3844;box-shadow:0 2px 0 #0004}
-.ss span{display:block;margin-top:5px;font-size:.55rem;letter-spacing:.1em;color:#e7dcff;text-align:center}
+.empty{display:block!important;cursor:default!important;padding:22px 14px;text-align:center;line-height:1.6;font-size:.85rem}
+.lcd-hint{flex:none;padding:6px;background:var(--bar);color:var(--label);font-size:.6rem;text-align:center;letter-spacing:.02em}
 
-/* ---------- jogando ---------- */
-#play{display:none;height:100%;flex-direction:column}
-body.playing #home{display:none}body.playing #play{display:flex}
-.bar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1b1626}
-.bar button{background:var(--p2);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-weight:600}
-#title{flex:1;min-width:0;font-size:.85rem;color:#bdb3d6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#game{flex:1;min-height:0}
+/* ===== CONTROLE ===== */
+.controller{position:relative;flex:none;height:var(--ctrl-h);background:var(--purple);padding-bottom:env(safe-area-inset-bottom)}
+.shoulder{position:absolute;top:0;width:clamp(95px,30%,150px);height:clamp(22px,3.6dvh,30px);
+  background:linear-gradient(180deg,#e9e9ec,var(--grey-dark));color:#8a8a94;font-weight:700;font-size:13px;
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,.12)}
+.shoulder.l{left:0;border-radius:0 0 18px 0}
+.shoulder.r{right:0;border-radius:0 0 0 18px}
+.brand{position:absolute;top:clamp(4px,1dvh,9px);left:0;right:0;text-align:center;color:#fff;font-weight:800;letter-spacing:.08em;font-size:clamp(9px,2.6vw,12px);white-space:nowrap;pointer-events:none}
 
-/* ---------- janelas ---------- */
-.ov{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:50;
- overscroll-behavior:none;touch-action:none;
- padding:calc(16px + env(safe-area-inset-top,0px) + var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px) + var(--tg-safe-area-inset-bottom,0px) + var(--tg-content-safe-area-inset-bottom,0px))}
+.dpad{position:absolute;left:clamp(16px,8%,44px);top:46%;transform:translateY(-50%);
+  width:calc(var(--d)*3);height:calc(var(--d)*3);
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.dpad::before,.dpad::after{content:"";position:absolute;background:#d6d6da;box-shadow:0 2px 4px rgba(0,0,0,.25);pointer-events:none}
+.dpad::before{left:33.333%;top:0;width:33.334%;height:100%;border-radius:12px}
+.dpad::after{top:33.333%;left:0;height:33.334%;width:100%;border-radius:12px}
+.dp{position:relative;background:transparent;z-index:1}
+.dp.up{grid-area:1/2;border-radius:12px 12px 0 0}
+.dp.left{grid-area:2/1;border-radius:12px 0 0 12px}
+.dp.right{grid-area:2/3;border-radius:0 12px 12px 0}
+.dp.down{grid-area:3/2;border-radius:0 0 12px 12px}
+.dp.pressed{filter:none;background:rgba(0,0,0,.16)}
+.dp-center{grid-area:2/2;z-index:1;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.dp-center::after{content:"";width:38%;height:38%;border-radius:50%;background:linear-gradient(135deg,#bfbfc6,#e4e4e8)}
+.dp::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0;transform:translate(-50%,-50%);border:7px solid transparent}
+.up::before{border-bottom:11px solid #a8a8b0;border-top:0;margin-top:-1px}
+.down::before{border-top:11px solid #a8a8b0;border-bottom:0}
+.left::before{border-right:11px solid #a8a8b0;border-left:0}
+.right::before{border-left:11px solid #a8a8b0;border-right:0}
+
+.actions{position:absolute;right:clamp(16px,7%,40px);top:46%;transform:translateY(-50%);
+  width:calc(var(--ab)*1.95);height:calc(var(--ab)*1.8)}
+.ab{position:absolute;width:var(--ab);height:var(--ab);border-radius:50%;color:#8a8a94;font-weight:700;font-size:calc(var(--ab)*.36);
+  background:linear-gradient(180deg,#ececef,var(--grey-dark));box-shadow:0 2px 4px rgba(0,0,0,.25)}
+.ab.a{right:0;top:0}
+.ab.b{left:0;bottom:0}
+
+.bottom{position:absolute;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;align-items:flex-start;justify-content:space-between;padding:0 clamp(16px,7%,40px)}
+.small{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;color:var(--label);padding:6px 4px}
+.dot{width:16px;height:16px;border-radius:50%;background:linear-gradient(180deg,#ececef,var(--grey-dark));box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.small span{font-size:9px;font-weight:600;letter-spacing:.08em}
+.center-pair{display:flex;gap:clamp(18px,8vw,40px)}
+.tri{width:36px;display:flex;justify-content:flex-end;align-items:flex-end;padding-top:14px}
+.tri svg{width:16px;height:16px;fill:none;stroke:#b77bff;stroke-width:2}
+
+.pressed{filter:brightness(.8)}
+.ab.pressed,.shoulder.pressed{transform:scale(.96)}
+.small.pressed .dot{filter:brightness(.75)}
+.small.pressed{filter:none}
+
+@media (max-height:620px){
+  :root{--ctrl-h:clamp(220px,48dvh,300px);--d:clamp(34px,9.5vw,46px);--ab:clamp(44px,12vw,58px)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .ab,.shoulder{transition:transform .06s,filter .06s}
+}
+
+/* ===== janelas e aviso ===== */
+.ov{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;z-index:50;overscroll-behavior:none;touch-action:none}
 .ov.show{display:flex}
-.card{width:min(100%,360px);background:#1d1830;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
-.card h2{margin:0;font-size:1.1rem}
+.card{width:min(100%,360px);background:#1d1830;color:#eee;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
+.card h2{font-size:1.1rem}
 .card label{display:flex;flex-direction:column;gap:5px;font-size:.85rem;color:#bdb3d6}
 .card input[type=text]{background:#120f20;border:1px solid #4b3f78;color:#fff;border-radius:8px;padding:10px;font-size:1rem}
 .card input[type=file]{font-size:.8rem;color:#bdb3d6}
 .row{display:flex;gap:8px}.row>*{flex:1}
-.btn{background:var(--p1);color:#fff;border:0;border-radius:10px;padding:11px;font-weight:700}
+.btn{background:var(--p1);color:#fff;border-radius:10px;padding:11px;font-weight:700}
 .btn.sec{background:#33294f}
 .slot{display:flex;align-items:center;gap:8px;background:#120f20;border-radius:10px;padding:8px 10px}
 .slot b{display:block;font-size:.85rem}.slot small{color:#9b90bb}.slot div{flex:1}
-.slot button{padding:8px 10px;font-size:.8rem;border-radius:8px;border:0;background:var(--p2);color:#fff}
+.slot button{padding:8px 10px;font-size:.8rem;border-radius:8px;background:var(--p2);color:#fff}
 .slot button:disabled{opacity:.35}
-#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translate(-50%,20px);background:#fff;color:#111;padding:10px 16px;border-radius:20px;font-size:.85rem;opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:90vw}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:#fff;color:#111;padding:10px 16px;border-radius:20px;font-size:.85rem;opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:90vw}
 #toast.show{opacity:1;transform:translate(-50%,0)}
-@media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
 </head>
 <body>
+<div class="emulator">
 
-<main id="home">
- <div class="console">
-  <div class="bezel">
-   <div class="bezel-top"><i></i>BATERIA</div>
-   <div class="lcd">
-    <div class="lcd-head">MEUS JOGOS</div>
-    <ul id="list"></ul>
-    <div class="lcd-foot" id="foot">
-     <button id="b-play">Jogar</button><button id="b-new">Do zero</button><button id="b-cover">Capa</button><button id="b-del">Apagar</button>
+  <div class="screen-area">
+    <div class="gba-screen">
+      <div id="game"></div>
+      <div id="lib">
+        <div class="lcd-head">MEUS JOGOS</div>
+        <ul id="list"></ul>
+        <div class="lcd-hint">A jogar · START adicionar · SELECT capa · MENU opções</div>
+      </div>
     </div>
-   </div>
   </div>
-  <div class="logo">PLAYER ADVANCE</div>
-  <div class="pad">
-   <div class="dpad">
-    <button class="d u" data-k="up" aria-label="Cima"></button><button class="d l" data-k="left" aria-label="Esquerda"></button>
-    <button class="d r" data-k="right" aria-label="Direita"></button><button class="d dn" data-k="down" aria-label="Baixo"></button>
-   </div>
-   <div class="ab"><button data-k="b" aria-label="B">B</button><button data-k="a" aria-label="A, jogar">A</button></div>
-  </div>
-  <div class="ss">
-   <div><button data-k="select" aria-label="Select, trocar capa"></button><span>SELECT</span></div>
-   <div><button data-k="start" aria-label="Start, adicionar jogo"></button><span>START</span></div>
-  </div>
- </div>
-</main>
 
-<section id="play">
- <div class="bar"><button id="p-back">← Jogos</button><div id="title"></div><button id="p-saves">Saves</button></div>
- <div id="game"></div>
-</section>
+  <div class="controller">
+    <button class="shoulder l" data-key="L" aria-label="L">L</button>
+    <button class="shoulder r" data-key="R" aria-label="R">R</button>
+    <div class="brand">GAME BOY ADVANCE</div>
+
+    <div class="dpad">
+      <button class="dp up" data-key="CIMA" aria-label="Cima"></button>
+      <button class="dp left" data-key="ESQUERDA" aria-label="Esquerda"></button>
+      <div class="dp-center"></div>
+      <button class="dp right" data-key="DIREITA" aria-label="Direita"></button>
+      <button class="dp down" data-key="BAIXO" aria-label="Baixo"></button>
+    </div>
+
+    <div class="actions">
+      <button class="ab a" data-key="A" aria-label="A">A</button>
+      <button class="ab b" data-key="B" aria-label="B">B</button>
+    </div>
+
+    <div class="bottom">
+      <button class="small" data-key="MENU"><div class="dot"></div><span>MENU</span></button>
+      <div class="center-pair">
+        <button class="small" data-key="SELECT"><div class="dot"></div><span>SELECT</span></button>
+        <button class="small" data-key="START"><div class="dot"></div><span>START</span></button>
+      </div>
+      <div class="tri"><svg viewBox="0 0 16 16"><path d="M8 2 L14.5 14 L1.5 14 Z" stroke-linejoin="round"/></svg></div>
+    </div>
+  </div>
+
+</div>
 
 <div class="ov" id="ov-add"><div class="card">
  <h2>Adicionar jogo</h2>
@@ -128,11 +176,9 @@ body.playing #home{display:none}body.playing #play{display:flex}
  <div class="row"><button class="btn sec" id="a-cancel">Cancelar</button><button class="btn" id="a-ok">Adicionar</button></div>
 </div></div>
 
-<div class="ov" id="ov-saves"><div class="card">
- <h2>Saves</h2>
- <p style="margin:0;font-size:.8rem;color:#9b90bb">O auto-save grava a cada 30 s e ao sair do jogo.</p>
- <div id="slots"></div>
- <button class="btn sec" id="s-close">Fechar</button>
+<div class="ov" id="ov-menu"><div class="card">
+ <h2 id="menu-title">Menu</h2>
+ <div id="menu-body" style="display:flex;flex-direction:column;gap:8px"></div>
 </div></div>
 
 <input type="file" id="f-cover2" accept="image/*" hidden>
@@ -141,7 +187,7 @@ body.playing #home{display:none}body.playing #play{display:flex}
 <script>
 const $=s=>document.querySelector(s);
 const tg=window.Telegram&&window.Telegram.WebApp;
-try{tg.ready();tg.expand();tg.disableVerticalSwipes&&tg.disableVerticalSwipes();tg.setHeaderColor('#0e0b16');tg.setBackgroundColor('#0e0b16')}catch(e){}
+try{tg.ready();tg.expand();tg.disableVerticalSwipes&&tg.disableVerticalSwipes();tg.setHeaderColor('#000000');tg.setBackgroundColor('#000000')}catch(e){}
 try{navigator.storage.persist()}catch(e){}
 document.addEventListener('touchmove',e=>{if(!e.target.closest('#list,.card,#game'))e.preventDefault()},{passive:false});
 addEventListener('scroll',()=>scrollTo(0,0));
@@ -149,6 +195,17 @@ addEventListener('scroll',()=>scrollTo(0,0));
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2400)}
 const ask=m=>new Promise(r=>{try{tg.showConfirm(m,r)}catch(e){r(confirm(m))}});
 const fmt=t=>new Date(t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+const closeOv=()=>document.querySelectorAll('.ov.show').forEach(o=>o.classList.remove('show'));
+
+/* ---------- vibração: Telegram -> navigator.vibrate -> truque do switch (iOS) ---------- */
+let vibOn=true;try{vibOn=localStorage.getItem('vib')!=='0'}catch(e){}
+const iosSwitch=document.createElement('label');
+iosSwitch.style.cssText='position:fixed;left:-100px;top:-100px;opacity:0;pointer-events:none';
+iosSwitch.innerHTML='<input type="checkbox" switch>';document.body.appendChild(iosSwitch);
+function haptic(){if(!vibOn)return;try{
+ if(tg&&tg.HapticFeedback){tg.HapticFeedback.impactOccurred('medium');return}
+ if(navigator.vibrate){navigator.vibrate(20);return}
+ iosSwitch.click()}catch(e){}}
 
 /* ---------- banco local (IndexedDB) ---------- */
 const db=new Promise((ok,no)=>{const r=indexedDB.open('player-advance',1);
@@ -159,7 +216,7 @@ const put=(s,v)=>tx(s,'readwrite',o=>o.put(v)),get=(s,k)=>tx(s,'readonly',o=>o.g
       del=(s,k)=>tx(s,'readwrite',o=>o.delete(k)),all=s=>tx(s,'readonly',o=>o.getAll());
 
 /* ---------- biblioteca ---------- */
-let games=[],autos=new Set(),sel=0,urls=[];
+let games=[],autos=new Set(),sel=0,urls=[],playing=false;
 async function loadLib(){
  games=(await all('games')).sort((a,b)=>b.added-a.added);
  autos=new Set((await all('states')).filter(s=>s.key.endsWith(':auto')).map(s=>s.key.slice(0,-5)));
@@ -167,23 +224,21 @@ async function loadLib(){
 }
 function render(){
  urls.forEach(URL.revokeObjectURL);urls=[];
- const ul=$('#list');ul.innerHTML='';$('#foot').style.display=games.length?'flex':'none';
- if(!games.length){ul.innerHTML='<li class="empty" style="display:block;cursor:default">Nenhum jogo ainda.<br>Aperte START para adicionar o primeiro.</li>';return}
+ const ul=$('#list');ul.innerHTML='';
+ if(!games.length){ul.innerHTML='<li class="empty">Nenhum jogo ainda.<br>Aperte START para adicionar o primeiro.</li>';return}
  games.forEach((g,i)=>{
   const li=document.createElement('li');if(i===sel)li.className='on';
   const cv=document.createElement('div');cv.className='cv';
   if(g.cover){const im=new Image();im.alt='';const u=URL.createObjectURL(g.cover);urls.push(u);im.src=u;cv.appendChild(im)}else cv.textContent=(g.name[0]||'?').toUpperCase();
   const nm=document.createElement('div');nm.className='nm';nm.textContent=g.name;
-  const tg2=document.createElement('div');tg2.className='tag';tg2.textContent=autos.has(g.id)?'● SALVO':'';
-  li.append(cv,nm,tg2);
+  const tag=document.createElement('div');tag.className='tag';tag.textContent=autos.has(g.id)?'● SALVO':'';
+  li.append(cv,nm,tag);
   li.onclick=()=>{if(sel===i)launch(g.id,false);else{sel=i;render()}};
   ul.appendChild(li);
  });
  const on=ul.querySelector('.on');on&&on.scrollIntoView({block:'nearest'});
- $('#b-new').style.display=autos.has(games[sel].id)?'':'none';
 }
 const cur_=()=>games[sel];
-function launch(id,fresh){location.hash='play='+encodeURIComponent(id)+(fresh?'&fresh':'');location.reload()}
 
 function openAdd(){$('#f-name').value='';$('#f-rom').value='';$('#f-cover').value='';$('#ov-add').classList.add('show')}
 $('#a-cancel').onclick=()=>$('#ov-add').classList.remove('show');
@@ -193,26 +248,79 @@ $('#a-ok').onclick=async()=>{
  if(!rom||!/\.(gba|agb|zip|7z)$/i.test(rom.name))return toast('Esse arquivo não parece uma ROM de GBA (.gba, .zip ou .7z)');
  const id=(crypto.randomUUID?crypto.randomUUID():Date.now()+''+Math.random()).replace(/[^\w-]/g,'');
  try{
-  /* copia os bytes para a memória: guardar o File direto aponta para o arquivo no celular e depois dá ERR_FILE_NOT_FOUND */
   const romCopy=new Blob([await rom.arrayBuffer()]);
   const coverCopy=cover?new Blob([await cover.arrayBuffer()],{type:cover.type}):null;
   await put('games',{id,name:name||rom.name.replace(/\.[^.]+$/,''),rom:romCopy,cover:coverCopy,added:Date.now()})
  }catch(e){return toast('Não foi possível guardar este jogo (sem espaço ou arquivo ilegível)')}
  $('#ov-add').classList.remove('show');sel=0;await loadLib();toast('Jogo adicionado')};
+$('#f-cover2').onchange=async e=>{const f=e.target.files[0],g=cur_();if(!f||!g)return;
+ try{g.cover=new Blob([await f.arrayBuffer()],{type:f.type});await put('games',g)}catch(err){toast('Não foi possível guardar a capa')}
+ e.target.value='';await loadLib()};
+async function delGame(g){if(!await ask('Apagar "'+g.name+'" e todos os saves?'))return;
+ await del('games',g.id);for(const s of ['auto','1','2','3'])await del('states',g.id+':'+s);await loadLib()}
 
-$('#b-play').onclick=()=>cur_()&&launch(cur_().id,false);
-$('#b-new').onclick=async()=>{const g=cur_();if(g&&await ask('Começar do zero? O auto-save será ignorado.'))launch(g.id,true)};
-$('#b-cover').onclick=()=>cur_()&&$('#f-cover2').click();
-$('#f-cover2').onchange=async e=>{const f=e.target.files[0],g=cur_();if(!f||!g)return;try{g.cover=new Blob([await f.arrayBuffer()],{type:f.type});await put('games',g)}catch(err){toast('Não foi possível guardar a capa')}e.target.value='';await loadLib()};
-$('#b-del').onclick=async()=>{const g=cur_();if(!g||!await ask('Apagar "'+g.name+'" e todos os saves?'))return;
- await del('games',g.id);for(const s of ['auto','1','2','3'])await del('states',g.id+':'+s);await loadLib()};
+/* ---------- controles (o layout todo manda para cá) ---------- */
+const IDX={B:0,SELECT:2,START:3,CIMA:4,BAIXO:5,ESQUERDA:6,DIREITA:7,A:8,L:10,R:11};
+const press=(i,v)=>{try{window.EJS_emulator.gameManager.simulateInput(0,i,v)}catch(e){}};
+let rep;
+function libKey(k){
+ if(k==='CIMA'){sel=Math.max(0,sel-1);render()}
+ else if(k==='BAIXO'){sel=Math.min(games.length-1,sel+1);render()}
+ else if(k==='A'){cur_()&&launch(cur_().id,false)}
+ else if(k==='START')openAdd();
+ else if(k==='SELECT'){cur_()&&$('#f-cover2').click()}
+ else if(k==='MENU')openMenu();
+}
+function buttonEvent(key,down){
+ clearTimeout(rep);clearInterval(rep);
+ if(playing){
+  if(key==='MENU'){if(down)openMenu();return}
+  if(key in IDX)press(IDX[key],down?1:0);
+  return}
+ if(!down)return;
+ libKey(key);
+ if(key==='CIMA'||key==='BAIXO')rep=setTimeout(()=>{rep=setInterval(()=>libKey(key),140)},350);
+}
+document.querySelectorAll('[data-key]').forEach(el=>{
+ const key=el.dataset.key;
+ el.addEventListener('pointerdown',e=>{
+  e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(x){}
+  el.classList.add('pressed');haptic();buttonEvent(key,true)});
+ const up=()=>{if(!el.classList.contains('pressed'))return;el.classList.remove('pressed');buttonEvent(key,false)};
+ ['pointerup','pointercancel','lostpointercapture'].forEach(t=>el.addEventListener(t,up));
+ el.addEventListener('contextmenu',e=>e.preventDefault());
+});
+document.addEventListener('keydown',e=>{if(playing||e.target.tagName==='INPUT')return;
+ const m={ArrowUp:'CIMA',ArrowDown:'BAIXO',Enter:'A'}[e.key];m&&libKey(m)});
 
-const keys={up:()=>{sel=Math.max(0,sel-1);render()},down:()=>{sel=Math.min(games.length-1,sel+1);render()},
- a:()=>cur_()&&launch(cur_().id,false),start:openAdd,select:()=>cur_()&&$('#f-cover2').click(),
- b:()=>document.querySelectorAll('.ov.show').forEach(o=>o.classList.remove('show')),left:()=>{},right:()=>{}};
-document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>keys[b.dataset.k]());
-document.addEventListener('keydown',e=>{if(document.body.classList.contains('playing')||e.target.tagName==='INPUT')return;
- const m={ArrowUp:'up',ArrowDown:'down',Enter:'a',Escape:'b'}[e.key];m&&keys[m]()});
+/* ---------- menu (botão MENU) ---------- */
+async function openMenu(){
+ const box=$('#menu-body');box.innerHTML='';
+ const add=(t,fn,main)=>{const b=document.createElement('button');b.className='btn'+(main?'':' sec');b.textContent=t;b.onclick=fn;box.appendChild(b)};
+ const vib=()=>{add('Vibração: '+(vibOn?'ligada':'desligada'),()=>{vibOn=!vibOn;try{localStorage.setItem('vib',vibOn?'1':'0')}catch(e){}openMenu()})};
+ if(playing){
+  $('#menu-title').textContent='Menu';
+  for(const s of ['auto','1','2','3']){
+   const r=await get('states',cur+':'+s),row=document.createElement('div');row.className='slot';
+   row.innerHTML='<div><b>'+(s==='auto'?'Auto-save':'Slot '+s)+'</b><small>'+(r?fmt(r.time):'vazio')+'</small></div>';
+   if(s!=='auto'){const sv=document.createElement('button');sv.textContent='Salvar';
+    sv.onclick=async()=>{toast(await snap(s)?'Salvo no slot '+s:'Não foi possível salvar');openMenu()};row.appendChild(sv)}
+   const ld=document.createElement('button');ld.textContent='Carregar';ld.disabled=!r;
+   ld.onclick=async()=>{if(await restore(s)){closeOv();toast('Save carregado')}else toast('Falha ao carregar')};
+   row.appendChild(ld);box.appendChild(row)}
+  vib();add('Voltar à biblioteca',back);add('Fechar',closeOv);
+ }else{
+  const g=cur_();$('#menu-title').textContent=g?g.name:'Menu';
+  add('Adicionar jogo',()=>{closeOv();openAdd()},true);
+  if(g){
+   if(autos.has(g.id))add('Jogar do zero',async()=>{if(await ask('Começar do zero? O auto-save será ignorado.')){closeOv();launch(g.id,true)}});
+   add('Trocar capa',()=>{closeOv();$('#f-cover2').click()});
+   add('Apagar jogo',async()=>{closeOv();await delGame(g)});
+  }
+  vib();add('Fechar',closeOv);
+ }
+ $('#ov-menu').classList.add('show');
+}
 
 /* ---------- jogando ---------- */
 let cur=null,started=false;
@@ -223,26 +331,26 @@ async function snap(slot){
 async function restore(slot){
  const r=await get('states',cur+':'+slot);if(!r)return false;
  try{window.EJS_emulator.gameManager.loadState(new Uint8Array(await r.data.arrayBuffer()));return true}catch(e){return false}}
-async function back(){await snap('auto');try{tg.exitFullscreen&&tg.exitFullscreen()}catch(e){}history.replaceState(null,'',location.pathname);location.reload()}
+async function back(){await snap('auto');location.reload()}
 
-async function startPlay(id,fresh){
- cur=id;document.body.classList.add('playing');
- const g=await get('games',id);if(!g){history.replaceState(null,'',location.pathname);return home()}
- $('#title').textContent=g.name;
+/* começa direto: sem tela de "Jogar" do emulador */
+async function launch(id,fresh){
+ if(playing)return;
+ playing=true;cur=id;document.body.classList.add('playing');
+ const g=await get('games',id);
  let rom;try{rom=new Blob([await g.rom.arrayBuffer()])}catch(e){
   toast('Não consegui ler a ROM salva. Apague o jogo e adicione de novo.');
-  setTimeout(()=>{history.replaceState(null,'',location.pathname);location.reload()},3000);return}
+  setTimeout(()=>location.reload(),3000);return}
  const auto=fresh?null:await get('states',id+':auto');
- /* usa o emulador hospedado na pasta data/ do próprio site; se ela não existir, cai no CDN */
  let base='https://cdn.emulatorjs.org/stable/data/';
  try{const r=await fetch('data/loader.js',{method:'HEAD',cache:'no-store'});if(r.ok)base='data/'}catch(e){}
- toast(base==='data/'?'Emulador local ✓':'Emulador via CDN');
+ if(base!=='data/')toast('Emulador via CDN');
  Object.assign(window,{EJS_player:'#game',EJS_core:'gba',EJS_gameUrl:URL.createObjectURL(rom),
   EJS_gameName:g.name.replace(/[^\w\- ]/g,'')||'jogo',EJS_pathtodata:base,
-  EJS_color:'#7b4fd6',EJS_language:'pt-BR',EJS_threads:false,
+  EJS_color:'#7b4fd6',EJS_language:'pt-BR',EJS_threads:false,EJS_startOnLoaded:true,
+  EJS_defaultOptions:{'virtual-gamepad':'disabled'},
   EJS_onGameStart:()=>{started=true;toast(auto?'Auto-save carregado':'Auto-save ativo')}});
  if(auto)window.EJS_loadStateURL=URL.createObjectURL(auto.data);
- try{tg.requestFullscreen&&tg.requestFullscreen()}catch(e){}
  try{tg.BackButton.show();tg.BackButton.onClick(back)}catch(e){}
  setInterval(()=>snap('auto'),30000);
  document.addEventListener('visibilitychange',()=>document.hidden&&snap('auto'));
@@ -250,24 +358,10 @@ async function startPlay(id,fresh){
  const s=document.createElement('script');s.src=EJS_pathtodata+'loader.js';
  s.onerror=()=>toast('Não foi possível carregar o emulador');document.body.appendChild(s);
 }
-$('#p-back').onclick=back;
-$('#s-close').onclick=()=>$('#ov-saves').classList.remove('show');
-$('#p-saves').onclick=async()=>{
- const box=$('#slots');box.innerHTML='';box.style.cssText='display:flex;flex-direction:column;gap:8px';
- for(const s of ['auto','1','2','3']){
-  const r=await get('states',cur+':'+s),row=document.createElement('div');row.className='slot';
-  row.innerHTML='<div><b>'+(s==='auto'?'Auto-save':'Slot '+s)+'</b><small>'+(r?fmt(r.time):'vazio')+'</small></div>';
-  if(s!=='auto'){const sv=document.createElement('button');sv.textContent='Salvar';
-   sv.onclick=async()=>{toast(await snap(s)?'Salvo no slot '+s:'Não foi possível salvar');$('#p-saves').click()};row.appendChild(sv)}
-  const ld=document.createElement('button');ld.textContent='Carregar';ld.disabled=!r;
-  ld.onclick=async()=>{if(await restore(s)){$('#ov-saves').classList.remove('show');toast('Save carregado')}else toast('Falha ao carregar')};
-  row.appendChild(ld);box.appendChild(row)}
- $('#ov-saves').classList.add('show')};
 
 /* ---------- início ---------- */
-function home(){try{tg.BackButton.hide()}catch(e){}try{if(tg.isFullscreen)tg.exitFullscreen()}catch(e){}loadLib()}
-const m=location.hash.match(/^#play=([^&]+)(&fresh)?$/);
-m?startPlay(decodeURIComponent(m[1]),!!m[2]):home();
+try{tg.BackButton.hide()}catch(e){}
+loadLib();
 </script>
 </body>
 </html>
